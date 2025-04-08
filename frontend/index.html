@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Recommender Chatbot</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Additional inline styles for the changes */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-selector {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .header-selector select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .chat-container {
+            height: 72vh; /* Increased chat container height */
+            max-height: none;
+        }
+        
+        /* Feedback improvements */
+        .feedback-improvement {
+            display: none;
+            margin-top: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .feedback-improvement textarea {
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid #555;
+        }
+        
+        .feedback-improvement button {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .feedback-thanks {
+            display: none;
+            color: #4caf50;
+            margin-left: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <button id="new-chat-btn" class="btn-icon" title="New Chat">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <h1>Book Recommender</h1>
+            </div>
+            <div class="header-right">
+                <button id="theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="header-selector">
+                    <span>Mood:</span>
+                    <select id="mood-select">
+                        <option value="default">Default</option>
+                        <option value="adventurous">Adventurous</option>
+                        <option value="romantic">Romantic</option>
+                        <option value="mysterious">Mysterious</option>
+                        <option value="thoughtful">Thoughtful</option>
+                    </select>
+                </div>
+                <div class="header-selector">
+                    <select id="language-select">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <div class="daily-highlight">
+            <div class="highlight-content">
+                <h3>📖 Daily Book Highlight</h3>
+                <div id="daily-book"></div>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chat-container">
+            <div class="welcome-message">
+                <h2>Welcome to Book Recommender!</h2>
+                <p>I can help you discover your next favorite book. Tell me what you're in the mood for or what you've enjoyed recently.</p>
+                <div class="quick-suggestions">
+                    <button class="quick-suggestion-btn" data-prompt="Recommend a mystery novel">Mystery</button>
+                    <button class="quick-suggestion-btn" data-prompt="Suggest a science fiction book">Sci-Fi</button>
+                    <button class="quick-suggestion-btn" data-prompt="I need a feel-good book">Feel-Good</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-area">
+                <textarea id="user-input" placeholder="Type your message here..."></textarea>
+                <div class="input-buttons">
+                    <button id="voice-btn" class="btn-icon" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="send-btn" class="btn-icon" title="Send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="feedback-container" id="feedback-container">
+                <span>Was this helpful?</span>
+                <button class="feedback-btn like"><i class="fas fa-thumbs-up"></i></button>
+                <button class="feedback-btn dislike"><i class="fas fa-thumbs-down"></i></button>
+                <span class="feedback-thanks">Thank you for your feedback!</span>
+                <div class="feedback-improvement">
+                    <p>How can we improve?</p>
+                    <textarea placeholder="Please share your suggestions..." rows="2"></textarea>
+                    <button class="submit-feedback">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_BASE_URL = 'http://localhost:5000'; // Update this to your backend URL
+        
+        // Feedback functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const likeBtn = document.querySelector('.feedback-btn.like');
+            const dislikeBtn = document.querySelector('.feedback-btn.dislike');
+            const thanksMessage = document.querySelector('.feedback-thanks');
+            const improvementForm = document.querySelector('.feedback-improvement');
+            const submitFeedbackBtn = document.querySelector('.submit-feedback');
+            
+            // Hide both feedback responses initially
+            thanksMessage.style.display = 'none';
+            improvementForm.style.display = 'none';
+            
+            // Like button click handler
+            likeBtn.addEventListener('click', function() {
+                thanksMessage.style.display = 'inline';
+                improvementForm.style.display = 'none';
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    thanksMessage.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Dislike button click handler
+            dislikeBtn.addEventListener('click', function() {
+                thanksMessage.style.display = 'none';
+                improvementForm.style.display = 'block';
+            });
+            
+            // Submit feedback handler
+            submitFeedbackBtn.addEventListener('click', function() {
+                const feedbackText = improvementForm.querySelector('textarea').value;
+                if (feedbackText.trim() !== '') {
+                    // Here you would typically send the feedback to your server
+                    console.log('User feedback:', feedbackText);
+                    
+                    // Show thanks message and hide form
+                   thanksMessage.textContent = 'Thank you for your feedback!';
+                    thanksMessage.style.display = 'inline';
+                    improvementForm.style.display = 'none';
+                    
+                    // Clear the textarea
+                    improvementForm.querySelector('textarea').value = '';
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        thanksMessage.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        });
+    </script>
+    <script src="js/voice-recognition.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
