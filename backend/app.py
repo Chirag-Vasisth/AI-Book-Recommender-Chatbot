@@ -28,51 +28,105 @@ model = genai.GenerativeModel(
     }
 )
 
-# System prompt template
+# Enhanced System prompt template with point-form response requirement
 SYSTEM_PROMPT = """
-You are BookBot, an expert book recommendation assistant. Your role is to:
-1. Recommend books based on user preferences, mood, and reading history
-2. Provide thoughtful, personalized book suggestions
-3. Maintain a formal and professional tone at all times
-4. Only discuss topics related to books, reading, and literature
-5. If asked about other topics, politely decline and steer conversation back to books
+You are BookBot, the ultimate book recommendation and information assistant. Your responses MUST follow these rules:
 
-Guidelines:
-- Always respond in the user's preferred language (current: {language})
-- Consider the user's current mood: {mood}
-- Provide 1-3 book recommendations at a time with brief explanations
-- Format book titles in quotes followed by author (e.g., "The Hobbit" by J.R.R. Tolkien)
-- For book details, use this format: "Title" by Author (Genre) - brief description
-- For out-of-scope requests, respond: "I specialize in book recommendations. Could we discuss your reading preferences instead?"
+1. RESPONSE FORMAT:
+- Always use bullet points
+- Each book recommendation should have:
+  • Title: "*Title*" by Author (Year)
+  • Genre/Field: 
+  • Key Details: 
+  • Publisher/Pages: 
+  • Why Recommended: 
 
-Current date: {current_date}
-Today's featured book: {featured_book}
+2. DOMAIN EXPERTISE:
+- Academic/Professional books
+- Fiction (all genres)
+- Non-fiction
+- Specialized texts
+
+3. REQUIRED DETAILS:
+- For fiction: themes, content notes
+- For academic: level, prerequisites
+- Always include publication year
+- Mention comparable titles when relevant
+
+4. EXAMPLE FORMAT:
+• "*Clean Code*" by Robert Martin (2008)
+  - Genre: Computer Science
+  - Details: Essential programming practices
+  - Publisher: Prentice Hall, 464 pages
+  - Why: Best for professional developers
+
+• "*The Hobbit*" by J.R.R. Tolkien (1937)
+  - Genre: Fantasy
+  - Themes: Adventure, heroism
+  - Publisher: Allen & Unwin, 310 pages
+  - Similar to: Lord of the Rings series
+
+Current Context:
+- Language: {language}
+- Mood: {mood}
+- Date: {current_date}
+- Featured: {featured_book}
+
+IMPORTANT: If query is not book-related, respond ONLY with:
+"I specialize exclusively in books and reading. Please ask about books."
 """
 
-# Featured books by day of week
+# Featured books by day of week (point format)
 FEATURED_BOOKS = {
-    0: '"Monday\'s Child" by Harriet Evans (Fiction) - A heartwarming family drama perfect for starting the week',
-    1: '"The Martian" by Andy Weir (Sci-Fi) - An exhilarating survival story to energize your Tuesday',
-    2: '"The Silent Patient" by Alex Michaelides (Thriller) - A psychological thriller for midweek suspense',
-    3: '"Little Women" by Louisa May Alcott (Classic) - A comforting classic for Thursday reflection',
-    4: '"The Hitchhiker\'s Guide to the Galaxy" by Douglas Adams (Humor/Sci-Fi) - A funny romp to welcome the weekend',
-    5: '"The Night Circus" by Erin Morgenstern (Fantasy) - A magical escape for your Saturday',
-    6: '"The Alchemist" by Paulo Coelho (Philosophical Fiction) - Inspirational reading for Sunday'
+    0: """• "*Clean Code*" by Robert Martin (2008)
+  - Genre: Computer Science
+  - Details: Essential programming practices
+  - Publisher: Prentice Hall, 464 pages""",
+    
+    1: """• "*The Emperor of All Maladies*" by Siddhartha Mukherjee (2010)
+  - Genre: Medicine
+  - Details: Biography of cancer
+  - Publisher: Scribner, 592 pages""",
+    
+    2: """• "*To Kill a Mockingbird*" by Harper Lee (1960)
+  - Genre: Fiction
+  - Themes: Racial injustice
+  - Publisher: J.B. Lippincott, 336 pages""",
+    
+    3: """• "*The Lean Startup*" by Eric Ries (2011)
+  - Genre: Business
+  - Details: Modern methodology
+  - Publisher: Crown Business, 336 pages""",
+    
+    4: """• "*Structure and Interpretation of Computer Programs*" by Abelson & Sussman (1996)
+  - Genre: Computer Science
+  - Level: Advanced
+  - Publisher: MIT Press, 657 pages""",
+    
+    5: """• "*Beloved*" by Toni Morrison (1987)
+  - Genre: Fiction
+  - Awards: Pulitzer Prize
+  - Publisher: Alfred A. Knopf, 324 pages""",
+    
+    6: """• "*The Right Stuff*" by Tom Wolfe (1979)
+  - Genre: Non-fiction
+  - Subject: Early astronauts
+  - Publisher: Farrar, Straus and Giroux, 448 pages"""
 }
 
 # Mood context mapping
 MOOD_CONTEXT = {
-    'default': 'neutral',
-    'adventurous': 'looking for exciting, adventurous stories',
-    'romantic': 'interested in romance and emotional connections',
-    'mysterious': 'seeking mystery and suspense',
-    'thoughtful': 'wanting thought-provoking and philosophical works'
+    'default': 'general inquiry',
+    'adventurous': 'looking for challenging or expansive works',
+    'romantic': 'interested in emotional or relationship-focused works',
+    'mysterious': 'seeking complex or puzzle-like works',
+    'thoughtful': 'wanting intellectually substantial material',
+    'technical': 'seeking professional or academic material'
 }
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
     try:
-        # Ensure request has JSON data
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 400
 
@@ -82,23 +136,20 @@ def chat():
         mood = data.get('mood', 'default')
         language = data.get('language', 'en')
         
-        # Validate input
         if not user_message:
             return jsonify({'error': 'Empty message'}), 400
         
-        # Check if message is out of scope
-        if is_out_of_scope(user_message):
+        # Strict book-related check
+        if not is_book_related(user_message):
             return jsonify({
-                'response': 'I specialize in book recommendations. Could we discuss your reading preferences instead?'
+                'response': 'I specialize exclusively in books and reading. Please ask about books.',
+                'is_book_related': False
             })
         
-        # Get current date info
+        # Get current context
         now = datetime.now()
-        day_of_week = now.weekday()
         current_date = now.strftime("%A, %B %d, %Y")
-        featured_book = FEATURED_BOOKS.get(day_of_week, FEATURED_BOOKS[0])
-        
-        # Prepare context based on mood
+        featured_book = FEATURED_BOOKS.get(now.weekday(), FEATURED_BOOKS[0])
         mood_context = MOOD_CONTEXT.get(mood, MOOD_CONTEXT['default'])
         
         # Prepare system prompt
@@ -109,16 +160,13 @@ def chat():
             featured_book=featured_book
         )
         
-        # Prepare conversation for Gemini
-        # First message is system prompt (sent as a user message)
+        # Prepare conversation
         messages = [{'role': 'user', 'parts': [system_prompt]}]
         
-        # Add conversation history - properly formatted for Gemini
         for msg in conversation_history:
             role = 'user' if msg['role'] == 'user' else 'model'
             messages.append({'role': role, 'parts': [msg['content']]})
         
-        # Add current message
         messages.append({'role': 'user', 'parts': [user_message]})
         
         # Generate response
@@ -130,9 +178,14 @@ def chat():
                     'error': 'Empty response from model',
                     'details': 'The model did not generate any text'
                 }), 500
+            
+            # Format validation
+            response_text = response.text
+            if not is_properly_formatted(response_text):
+                response_text = format_as_bullets(response_text)
                 
             return jsonify({
-                'response': response.text,
+                'response': response_text,
                 'timestamp': datetime.now().isoformat()
             })
             
@@ -149,16 +202,26 @@ def chat():
             'error': 'Sorry, I encountered an issue processing your request. Please try again.'
         }), 500
 
-def is_out_of_scope(message):
-    """Check if the message is out of scope for a book recommender."""
+def is_book_related(message):
+    """Strict check for book-related queries"""
     message_lower = message.lower()
-    out_of_scope_keywords = [
-        'sports', 'politics', 'medical advice', 'financial advice', 
-        'legal advice', 'programming', 'coding', 'how to build',
-        'weather', 'news', 'stock market', 'sports', 'game', 'movie',
-        'music', 'recipe', 'cooking', 'travel', 'vacation'
+    book_keywords = [
+        'book', 'textbook', 'novel', 'read', 'author', 'publish',
+        'literature', 'fiction', 'non-fiction', 'genre', 'chapter',
+        'reference', 'academic', 'study', 'learn', 'research',
+        'story', 'writer', 'reading', 'library', 'publisher',
+        'edition', 'volume', 'page', 'bookshelf', 'bookstore'
     ]
-    return any(keyword in message_lower for keyword in out_of_scope_keywords)
+    return any(keyword in message_lower for keyword in book_keywords)
+
+def is_properly_formatted(response):
+    """Check if response follows bullet point format"""
+    return response.strip().startswith('•') or response.strip().startswith('*')
+
+def format_as_bullets(text):
+    """Convert paragraph to bullet points"""
+    points = [line.strip() for line in text.split('\n') if line.strip()]
+    return '\n'.join(f'• {point}' for point in points)
 
 @app.route('/api/daily_book', methods=['GET'])
 def get_daily_book():
@@ -172,7 +235,7 @@ def get_daily_book():
         app.logger.error(f"Error in daily_book endpoint: {str(e)}")
         return jsonify({
             'error': 'Failed to retrieve daily book',
-            'book': FEATURED_BOOKS[0]  # Fallback
+            'book': FEATURED_BOOKS[0]
         }), 500
 
 @app.route('/health', methods=['GET'])
@@ -188,9 +251,9 @@ def feedback():
         data = request.get_json()
         message_id = data.get('messageId')
         is_positive = data.get('isPositive', False)
+        feedback_text = data.get('feedbackText', '')
         
-        # In a production app, you would store this feedback in a database
-        app.logger.info(f"Received feedback for message {message_id}: {'positive' if is_positive else 'negative'}")
+        app.logger.info(f"Feedback for {message_id}: {'positive' if is_positive else 'negative'} - {feedback_text}")
         
         return jsonify({
             'status': 'success',
