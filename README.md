@@ -1,6 +1,6 @@
 # Book Recommender Chatbot
 
-A sophisticated book recommendation chatbot with multiple features including multi-turn conversations, mood-based recommendations, multi-language support, and more.
+A sophisticated book recommendation chatbot with multiple features including multi-turn conversations, mood-based recommendations, and more.
 
 ## Features
 
@@ -9,7 +9,6 @@ A sophisticated book recommendation chatbot with multiple features including mul
 - Voice input support
 - Mood-based recommendations and backgrounds
 - Daily featured book highlights
-- Multi-language support
 - Conversation history
 - Progressive disclosure of information
 - Typing indicators
@@ -19,7 +18,7 @@ A sophisticated book recommendation chatbot with multiple features including mul
 
 - Frontend: HTML, CSS, JavaScript
 - Backend: Python (Flask)
-- AI: Google Gemini 1.5 Pro API
+- AI: Google Gemini 2.0 Flash API
 
 ## Setup
 
