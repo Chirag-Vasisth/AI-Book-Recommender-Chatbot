@@ -1,6 +1,6 @@
 # BookAI – Your Intelligent Reading Companion
 
-A highly sophisticated, premium AI book recommendation chatbot powered by Google Gemini 2.0 Flash. It features a stunning glassmorphism interface, robust conversational capabilities, and advanced multi-language understanding.
+A highly sophisticated, premium AI book recommendation chatbot powered by Google Gemini 3.0 Flash. It features a stunning glassmorphism interface, robust conversational capabilities, and advanced multi-language understanding.
 
 ## ✨ Key Features
 
@@ -17,7 +17,7 @@ A highly sophisticated, premium AI book recommendation chatbot powered by Google
 
 - **Frontend:** HTML5, CSS3 (Advanced Glassmorphism & Animations), Vanilla JavaScript
 - **Backend:** Python (Flask), Flask-CORS
-- **AI Core:** Google Gemini 2.0 Flash API (via `google-genai`)
+- **AI Core:** Google Gemini 3.0 Flash API (via `google-genai`)
 - **Icons & Fonts:** Font Awesome 6.4, Google Fonts (Outfit & Inter)
 
 ## 🚀 Setup Instructions
