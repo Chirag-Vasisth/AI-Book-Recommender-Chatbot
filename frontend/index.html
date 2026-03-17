@@ -1,232 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Recommender Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Book Recommender Premium</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Additional inline styles for the changes */
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .header-selector {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .header-selector select {
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #555;
-            background-color: #333;
-            color: white;
-            font-size: 14px;
-        }
-        
-        .chat-container {
-            height: 72vh; /* Increased chat container height */
-            max-height: none;
-        }
-        
-        /* Feedback improvements */
-        .feedback-improvement {
-            display: none;
-            margin-top: 10px;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .feedback-improvement textarea {
-            width: 100%;
-            margin-top: 8px;
-            padding: 8px;
-            border-radius: 4px;
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid #555;
-        }
-        
-        .feedback-improvement button {
-            margin-top: 8px;
-            padding: 6px 12px;
-            background-color: #4a6fa5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .feedback-thanks {
-            display: none;
-            color: #4caf50;
-            margin-left: 10px;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-         /* Added style for creator tag */
-         .creator-tag {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: #888;
-            font-size: 12px;
-            font-style: italic;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Modern premium fonts: Outfit for headings, Inter for body -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
 </head>
-<body class="dark-mode">
+
+<body class="dark-mode default">
+
+    <!-- Ultra Premium Dynamic Background Mesh -->
+    <div class="bg-orchestrator">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+    </div>
+
     <div class="app-container">
-        <header class="app-header">
+        <!-- Floating Glass Header -->
+        <header class="app-header glass-panel">
             <div class="header-left">
-                <button id="new-chat-btn" class="btn-icon" title="New Chat">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <h1>Book Recommender</h1>
+                <div class="logo-container" style="background: transparent; box-shadow: none;">
+                    <img src="logo.png" alt="BookAI Logo"
+                        style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);">
+                </div>
+                <div>
+                    <h1>BookAI<span class="accent-dot">.</span></h1>
+                    <p class="subtitle">Your intelligent reading companion</p>
+                </div>
             </div>
+
             <div class="header-right">
-                <button id="theme-toggle" class="btn-icon" title="Toggle Dark/Light Mode">
-                    <i class="fas fa-moon"></i>
+                <button id="new-chat-btn" class="nav-btn primary-btn" title="New Chat">
+                    <i class="fas fa-sparkles"></i>
+                    <span>New Chat</span>
                 </button>
-                <div class="header-selector">
-                    <span>Mood:</span>
-                    <select id="mood-select">
-                        <option value="default">Default</option>
+
+                <div class="custom-select-wrapper hidden-mobile">
+                    <i class="fas fa-masks-theater select-icon"></i>
+                    <select id="mood-select" class="premium-select">
+                        <option value="default">Default Mood</option>
                         <option value="adventurous">Adventurous</option>
                         <option value="romantic">Romantic</option>
                         <option value="mysterious">Mysterious</option>
                         <option value="thoughtful">Thoughtful</option>
                     </select>
                 </div>
-                <div class="header-selector">
-                    <select id="language-select">
+
+                <div class="custom-select-wrapper hidden-mobile">
+                    <i class="fas fa-globe select-icon"></i>
+                    <select id="language-select" class="premium-select">
                         <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="fr">French</option>
+                        <option value="es">Spanish</option>
                     </select>
                 </div>
+
+                <button id="theme-toggle" class="nav-btn icon-btn" title="Toggle Light/Dark Mode">
+                    <i class="fas fa-cloud-moon"></i>
+                </button>
             </div>
         </header>
 
-        <div class="daily-highlight">
-            <div class="highlight-content">
-                <h3>📖 Daily Book Highlight</h3>
-                <div id="daily-book"></div>
-            </div>
-        </div>
+        <main class="main-content">
+            <!-- Elegant Sidebar -->
+            <aside class="sidebar glass-panel">
+                <div class="daily-highlight">
+                    <div class="highlight-header">
+                        <div class="icon-circle"><i class="fas fa-star"></i></div>
+                        <h3>Daily Match</h3>
+                    </div>
+                    <div id="daily-book" class="highlight-content">
+                        <!-- Content dynamically loaded by script.js -->
+                    </div>
+                </div>
 
-        <div class="chat-container" id="chat-container">
-            <div class="welcome-message">
-                <h2>Welcome to Book Recommender!</h2>
-                <p>I can help you discover your next favorite book. Tell me what you're in the mood for or what you've enjoyed recently.</p>
-                <div class="quick-suggestions">
-                    <button class="quick-suggestion-btn" data-prompt="Recommend a mystery novel">Mystery</button>
-                    <button class="quick-suggestion-btn" data-prompt="Suggest a science fiction book">Sci-Fi</button>
-                    <button class="quick-suggestion-btn" data-prompt="I need a feel-good book">Feel-Good</button>
+                <div class="sidebar-footer">
+                    <div class="creator-badge">
+                        <div class="pulse-indicator"></div>
+                        <span>Chirag-12314277 AI Core</span>
+                    </div>
+                    <i class="fa-brands fa-github" style="color:var(--text-tertiary);"></i>
                 </div>
-            </div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="typing-indicator" id="typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        </div>
+            </aside>
 
-        <div class="input-container">
-            <div class="input-area">
-                <textarea id="user-input" placeholder="Type your message here..."></textarea>
-                <div class="input-buttons">
-                    <button id="voice-btn" class="btn-icon" title="Voice Input">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button id="send-btn" class="btn-icon" title="Send">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+            <!-- Expansive Chat Stage -->
+            <section class="chat-section">
+                <div class="chat-container glass-panel" id="chat-container">
+                    <!-- Hero Welcome Area -->
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h2>Discover Your Next<br><span>Favorite Book</span></h2>
+                        <p>Tell me what you're in the mood for, or what you've enjoyed recently. I'll analyze millions
+                            of titles to find your perfect match.</p>
+
+                        <div class="quick-suggestions">
+                            <button class="quick-suggestion-btn"
+                                data-prompt="Recommend a gripping psychological thriller">
+                                <i class="fas fa-magnifying-glass"></i> Thriller
+                            </button>
+                            <button class="quick-suggestion-btn" data-prompt="Suggest a hard sci-fi book set in space">
+                                <i class="fas fa-rocket"></i> Sci-Fi
+                            </button>
+                            <button class="quick-suggestion-btn"
+                                data-prompt="I need a heartwarming contemporary feel-good story">
+                                <i class="fas fa-heart"></i> Romance
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Threads -->
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- AI Typing Animation -->
+                    <div class="typing-indicator" id="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
                 </div>
-            </div>
-            <div class="feedback-container" id="feedback-container">
-                <span>Was this helpful?</span>
-                <button class="feedback-btn like"><i class="fas fa-thumbs-up"></i></button>
-                <button class="feedback-btn dislike"><i class="fas fa-thumbs-down"></i></button>
-                <span class="feedback-thanks">Thank you for your feedback!</span>
-                <div class="feedback-improvement">
-                    <p>How can we improve?</p>
-                    <textarea placeholder="Please share your suggestions..." rows="2"></textarea>
-                    <button class="submit-feedback">Submit</button>
+
+                <!-- Floating Input Island -->
+                <div class="composer-island">
+                    <div class="input-area">
+                        <textarea id="user-input" placeholder="Ask about a genre, author, or mood..."
+                            rows="1"></textarea>
+
+                        <div class="input-actions">
+                            <button id="voice-btn" class="action-btn" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="send-btn" class="action-btn send-btn" title="Send Message">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="feedback-container hidden" id="feedback-container">
+                        <span class="feedback-label">Was this helpful?</span>
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn like" title="Yes, highly accurate"><i
+                                    class="fas fa-check"></i></button>
+                            <button class="feedback-btn dislike" title="No, try again"><i
+                                    class="fas fa-times"></i></button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
-    <div class="creator-tag">Created by: Chirag-12314277</div>
-</div>
-
-    <script>
-        // API configuration
-        const API_BASE_URL = 'http://localhost:5000'; // Update this to your backend URL
-        
-        // Feedback functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const likeBtn = document.querySelector('.feedback-btn.like');
-            const dislikeBtn = document.querySelector('.feedback-btn.dislike');
-            const thanksMessage = document.querySelector('.feedback-thanks');
-            const improvementForm = document.querySelector('.feedback-improvement');
-            const submitFeedbackBtn = document.querySelector('.submit-feedback');
-            
-            // Hide both feedback responses initially
-            thanksMessage.style.display = 'none';
-            improvementForm.style.display = 'none';
-            
-            // Like button click handler
-            likeBtn.addEventListener('click', function() {
-                thanksMessage.style.display = 'inline';
-                improvementForm.style.display = 'none';
-                
-                // Hide after 3 seconds
-                setTimeout(() => {
-                    thanksMessage.style.display = 'none';
-                }, 3000);
-            });
-            
-            // Dislike button click handler
-            dislikeBtn.addEventListener('click', function() {
-                thanksMessage.style.display = 'none';
-                improvementForm.style.display = 'block';
-            });
-            
-            // Submit feedback handler
-            submitFeedbackBtn.addEventListener('click', function() {
-                const feedbackText = improvementForm.querySelector('textarea').value;
-                if (feedbackText.trim() !== '') {
-                    // Here you would typically send the feedback to your server
-                    console.log('User feedback:', feedbackText);
-                    
-                    // Show thanks message and hide form
-                   thanksMessage.textContent = 'Thank you for your feedback!';
-                    thanksMessage.style.display = 'inline';
-                    improvementForm.style.display = 'none';
-                    
-                    // Clear the textarea
-                    improvementForm.querySelector('textarea').value = '';
-                    
-                    // Hide after 3 seconds
-                    setTimeout(() => {
-                        thanksMessage.style.display = 'none';
-                    }, 3000);
-                }
-            });
-        });
-    </script>
+    <!-- Scripts -->
     <script src="js/voice-recognition.js"></script>
     <script src="js/script.js"></script>
+    <script>
+        // Micro-interactions and auto-resizing
+        document.addEventListener('DOMContentLoaded', function () {
+            const tex = document.getElementById('user-input');
+            if (tex) {
+                tex.addEventListener('input', function () {
+                    this.style.height = 'auto'; // Reset
+                    const newHeight = Math.min(this.scrollHeight, 200); // Max 200px
+                    this.style.height = newHeight + 'px';
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>

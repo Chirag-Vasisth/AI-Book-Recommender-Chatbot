@@ -14,12 +14,12 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Configure Gemini
-GOOGLE_API_KEY = "AIzaSyAK8obivhQ8T9mF-dGC-SnaZ7GutGQF4e0"
+GOOGLE_API_KEY = "AIzaSyDeiS-M21v3f1h3wFP_HC_TfT9SKwijgwQ"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize the model with specific configuration
 model = genai.GenerativeModel(
-    'gemini-2.0-flash',
+    'gemini-3-flash-preview',
     generation_config={
         "temperature": 0.7,
         "top_p": 0.8,
@@ -28,18 +28,25 @@ model = genai.GenerativeModel(
     }
 )
 
+# Homepage route (correctly placed)
+@app.route("/", methods=["GET"])
+def home():
+    return "Backend is running! BookBot API is online."
+
 # Enhanced System prompt template with point-form response requirement
 SYSTEM_PROMPT = """
 You are BookBot, the ultimate book recommendation and information assistant. Your responses MUST follow these rules:
 
 1. RESPONSE FORMAT:
-- Always use bullet points
+- For book recommendations, ALWAYS use bullet points or clear cards
+- You MUST provide MULTIPLE recommendations (at least 2 or 3)
+- Ensure NO TRUNCATION (do not use "..." or cut off the text)
 - Each book recommendation should have:
   • Title: "*Title*" by Author (Year)
   • Genre/Field: 
   • Key Details: 
   • Publisher/Pages: 
-  • Why Recommended: 
+  • Why Recommended: (VERY IMPORTANT: You MUST include this line for every book)
 
 2. DOMAIN EXPERTISE:
 - Academic/Professional books
@@ -58,21 +65,23 @@ You are BookBot, the ultimate book recommendation and information assistant. You
   - Genre: Computer Science
   - Details: Essential programming practices
   - Publisher: Prentice Hall, 464 pages
-  - Why: Best for professional developers
+  - Why Recommended: Best for professional developers wanting to write maintainable code
 
 • "*The Hobbit*" by J.R.R. Tolkien (1937)
   - Genre: Fantasy
   - Themes: Adventure, heroism
   - Publisher: Allen & Unwin, 310 pages
-  - Similar to: Lord of the Rings series
+  - Why Recommended: A fundamental fantasy classic that defines the genre
 
 Current Context:
-- Language: {language}
+- Language: {language} (You MUST respond ENTIRELY in this language, including all labels like Title, Genre, etc.)
 - Mood: {mood}
 - Date: {current_date}
 - Featured: {featured_book}
 
-IMPORTANT: If query is not book-related, respond ONLY with:
+IMPORTANT RULES FOR NON-BOOK QUERIES:
+- If the user sends a greeting (e.g., 'hi', 'how are you', 'what is your mood'), respond warmly and conversationally in a single short paragraph, asking how you can help them find a book. DO NOT use bullet points or book formats for this.
+- If the query is otherwise not book-related, respond ONLY with (translated to the target language):
 "I specialize exclusively in books and reading. Please ask about books."
 """
 
@@ -139,8 +148,8 @@ def chat():
         if not user_message:
             return jsonify({'error': 'Empty message'}), 400
         
-        # Strict book-related check
-        if not is_book_related(user_message):
+        # Strict context check
+        if not (is_book_related(user_message) or is_greeting(user_message)):
             return jsonify({
                 'response': 'I specialize exclusively in books and reading. Please ask about books.',
                 'is_book_related': False
@@ -181,7 +190,7 @@ def chat():
             
             # Format validation
             response_text = response.text
-            if not is_properly_formatted(response_text):
+            if is_book_related(user_message) and not is_properly_formatted(response_text):
                 response_text = format_as_bullets(response_text)
                 
             return jsonify({
@@ -202,15 +211,28 @@ def chat():
             'error': 'Sorry, I encountered an issue processing your request. Please try again.'
         }), 500
 
+def is_greeting(message):
+    """Check for basic pleasantries"""
+    msg = message.lower().strip()
+    greetings = ['hi', 'hello', 'hey', 'greetings', 'how are you', 'good morning', 'hola', 'bonjour', 'salut', 'नमस्ते', 'प्रणाम', 'mood', 'what is up', 'sup']
+    return any(msg.startswith(g) or msg == g for g in greetings) or 'how are you' in msg or 'mood' in msg
+
 def is_book_related(message):
     """Strict check for book-related queries"""
     message_lower = message.lower()
     book_keywords = [
+        # English
         'book', 'textbook', 'novel', 'read', 'author', 'publish',
         'literature', 'fiction', 'non-fiction', 'genre', 'chapter',
         'reference', 'academic', 'study', 'learn', 'research',
         'story', 'writer', 'reading', 'library', 'publisher',
-        'edition', 'volume', 'page', 'bookshelf', 'bookstore'
+        'edition', 'volume', 'page', 'bookshelf', 'bookstore',
+        # Hindi
+        'किताब', 'पुस्तक', 'उपन्यास', 'कहानी', 'लेखक', 'पढ़', 'साहित्य', 'कथा',
+        # Spanish
+        'libro', 'novela', 'leer', 'autor', 'literatura', 'historia',
+        # French
+        'livre', 'roman', 'lire', 'auteur', 'littérature', 'histoire'
     ]
     return any(keyword in message_lower for keyword in book_keywords)
 
